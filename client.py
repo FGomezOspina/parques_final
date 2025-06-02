@@ -33,17 +33,13 @@ pantalla.fill((255, 255, 255))
 pantalla.blit(sprite_dado0, (736, 640))
 pantalla.blit(sprite_dado0, (816, 640))
 
-def mostrar_mensaje_persistente(pantalla, mensaje, fuente):
-    texto = fuente.render(mensaje, True, (0, 0, 0))
-    rect_texto = texto.get_rect(center=(pantalla.get_width() // 2, 60))
-    pantalla.blit(texto, rect_texto)
-    pygame.display.update()
-
-def redraw_window(pantalla, jugador, otros_jugadores):
+def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
     global Pintar
     if Pintar:
         pantalla.fill((255, 255, 255))
         Pintar = False
+
+    # Limpiar zona derecha donde van botones/mensajes
     pygame.draw.rect(pantalla, (255, 255, 255), (720, 0, 180, 300))
 
     # Dibuja el tablero según el color del jugador
@@ -56,40 +52,43 @@ def redraw_window(pantalla, jugador, otros_jugadores):
     elif jugador.color == "Rojo":
         pantalla.blit(sprite_tablero_rojo, (0, 0))
 
+    # Dados del jugador
     pantalla.blit(dados[jugador.dados[0]], (736, 640))
     pantalla.blit(dados[jugador.dados[1]], (816, 640))
 
-    # Si todos están listos, mostrar mensaje
+    # Si todos están listos y el jugador también, dibujamos un subtítulo fijo:
     total_jugadores = len(otros_jugadores) + 1
     jugadores_listos = len([j for j in otros_jugadores if j.estado == "listo"]) + (1 if jugador.estado == "listo" else 0)
-    
     if total_jugadores >= 2 and jugadores_listos == total_jugadores and jugador.estado == "listo":
-        fuente = pygame.font.Font(None, 48)
-        texto = fuente.render("¡Listos para jugar!", True, (0, 0, 0))
-        pantalla.blit(texto, (200, 75))
+        subtitulo = pygame.font.Font(None, 48).render("¡Listos para jugar!", True, (0, 0, 0))
+        pantalla.blit(subtitulo, (200, 75))
 
+    # Dibujar fichas y nombres
     jugador.actualizar_en_pantalla(pantalla, jugador.color)
     jugador.dibujar_nombre(pantalla, jugador.color)
-
     for otro_jugador in otros_jugadores:
         if otro_jugador.color != jugador.color:
             otro_jugador.actualizar_en_pantalla(pantalla, jugador.color)
             otro_jugador.dibujar_nombre(pantalla, jugador.color)
-    
-    pygame.display.update()
+
+    # Dibujar mensaje si existe
+    if mensaje is not None:
+        texto_surf = fuente_mensajes.render(mensaje, True, (0, 0, 0))
+        rect_texto = texto_surf.get_rect(center=(pantalla.get_width() // 2, 60))
+        pantalla.blit(texto_surf, rect_texto)
 
 def menu_principal(network):
     menu = MenuInicio(pantalla)
     clock = pygame.time.Clock()
     running = True
-    
+
     while running:
-        time_delta = clock.tick(60)/1000.0
-        
+        time_delta = clock.tick(60) / 1000.0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return None
-            
+
             resultado = menu.procesar_eventos(event)
             if resultado:
                 # Intentar establecer el color seleccionado
@@ -106,12 +105,11 @@ def menu_principal(network):
                         for j in jugadores:
                             if j.color == resultado['color'] and j.nombre == resultado['nombre']:
                                 return resultado
-                            else:
-                                menu.mostrar_error(f"El color {resultado['color']} ya está en uso")
+                        menu.mostrar_error(f"El color {resultado['color']} ya está en uso")
                 except Exception as e:
                     print(f"Error al verificar color: {e}")
                     menu.mostrar_error("Error de conexión")
-        
+
         menu.actualizar(time_delta)
         menu.dibujar()
         pygame.display.update()
@@ -125,12 +123,13 @@ def main():
         if not jugador_inicial:
             print("No se pudo conectar al servidor")
             return
-        
+
         datos_jugador = menu_principal(n)
         if not datos_jugador:
             return
+
         jugador = Jugador(datos_jugador['nombre'], datos_jugador['color'], [0, 0, 0, 0])
-        
+
         manager = pygame_gui.UIManager((900, 720))
         boton_listo = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((750, 550), (100, 50)),
@@ -159,7 +158,7 @@ def main():
         )
         boton_mover_ficha_1_2.hide()
 
-        boton_mover_ficha_2= pygame_gui.elements.UIButton(
+        boton_mover_ficha_2 = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((750, 495), (100, 50)),
             text='Mover #',
             manager=manager
@@ -178,9 +177,8 @@ def main():
             text='Sacar Ficha de la Cárcel',
             manager=manager
         )
-
         boton_sacar_ficha_carcel.hide()
-           
+
         clock = pygame.time.Clock()
         partida_iniciada = False
         countdown = None
@@ -189,20 +187,19 @@ def main():
         # Fuente para mensajes
         fuente_mensajes = pygame.font.Font(None, 40)
         mensaje_actual = None
-        tiempo_mensaje = 30000
 
         while running:
-            time_delta = clock.tick(60)/1000.0
-            
+            time_delta = clock.tick(60) / 1000.0
+
             try:
                 jugadores = n.send(jugador)
                 # Si los dados cambiaron en el servidor, actualizar localmente
                 if jugadores is not None:
                     for otro in jugadores:
-                        if otro.color == jugador.color and otro.actualizar == True:
+                        if otro.color == jugador.color and otro.actualizar:
                             jugador.dados = otro.dados
-                            jugador.estado = otro.estado  # Actualizar el estado local
-                            jugador.turno = otro.turno    # Actualizar el turno local
+                            jugador.estado = otro.estado
+                            jugador.turno = otro.turno
                             jugador.fichas = otro.fichas
                             jugador.intentos_par = otro.intentos_par
                             jugador.accion = None
@@ -212,11 +209,11 @@ def main():
                             jugador.movimiento_restante = otro.movimiento_restante
                             break
 
-                # Actualizar estado del juego basado en la respuesta del servidor
+                # Lógica de estado de partida
                 total_jugadores = len(jugadores)
                 jugadores_listos = len([j for j in jugadores if j.estado == "listo"])
 
-                # Lógica para mostrar/ocultar botón de tirar dados
+                # Mostrar/ocultar botón de tirar dados en "definiendo_turno" y "jugando"
                 if jugador.estado == "jugando" and jugador.turno:
                     if jugador.fichas == [0, 0, 0, 0] and jugador.intentos_par < 3:
                         boton_tirar_dado.show()
@@ -224,8 +221,8 @@ def main():
                         boton_mover_ficha_1_1.set_text(f"Mover {jugador.movimiento_restante[0]}")
                         boton_mover_ficha_1_2.set_text(f"Mover {jugador.movimiento_restante[1]}")
                         boton_mover_ficha_2.set_text(f"Mover {jugador.movimiento_restante[0] + jugador.movimiento_restante[1]}")
-                        
-                        #si alguna de las fichas está en la pocision 0
+
+                        # Si alguna ficha está en posición 0 y hay intentos
                         if 0 in jugador.fichas and jugador.intentos_par > 0 and jugador.tiros_dados == 1:
                             boton_sacar_ficha_carcel.show()
                         else:
@@ -255,7 +252,8 @@ def main():
                             pygame.draw.rect(pantalla, (255, 255, 255), (750, 440, 100, 110))
                         else:
                             boton_mover_ficha_1_2.show()
-                        if jugador.movimiento_restante == [0,0] and jugador.movimiento_restante[0] + jugador.movimiento_restante[1] == 0:
+
+                        if jugador.movimiento_restante == [0, 0] and jugador.movimiento_restante[0] + jugador.movimiento_restante[1] == 0:
                             boton_mover_ficha_1_1.hide()
                             boton_mover_ficha_1_2.hide()
                             boton_mover_ficha_2.hide()
@@ -296,7 +294,7 @@ def main():
                             jugador.accion = "seleccionar_ficha"
                             jugador.seleccionada = indice_ficha
                             break
-                
+
                 # Esconder el botón de sacar ficha después de sacar una ficha
                 if jugador.estado == "jugando" and jugador.seleccionada is None:
                     boton_sacar_ficha.hide()
@@ -306,71 +304,66 @@ def main():
                     if countdown is None:
                         countdown = 3
                         tiempo_inicio = pygame.time.get_ticks()
-                    
+
                     tiempo_actual = pygame.time.get_ticks()
                     if tiempo_inicio is not None:
                         tiempo_transcurrido = (tiempo_actual - tiempo_inicio) / 1000
                         countdown = 3 - int(tiempo_transcurrido)
-                        
+
                         if countdown <= 0:
                             partida_iniciada = True
                             jugador.accion = "definiendo_turno"
                             boton_listo.hide()
                             boton_tirar_dado.show()
                             print("Iniciando partida...")
-                
-                # Actualizar interfaz según el estado del jugador
-                redraw_window(pantalla, jugador, jugadores)
-                
-                # Mostrar mensajes según el estado
-                mensaje = None
-                if jugador.estado == "definiendo_turno":
-                    mostrar_mensaje_persistente(pantalla, "¡Tira los dados para determinar el orden!", fuente_mensajes)
+
+                # 1) Determinar qué mensaje mostrar (o ninguno) en función del estado:
+                if jugador.estado.startswith("Ganador:"):
+                    mensaje_actual = jugador.estado
+                elif jugador.estado == "definiendo_turno":
+                    mensaje_actual = "¡Tira los dados para determinar el orden!"
                 elif jugador.estado == "esperando_orden":
-                    mostrar_mensaje_persistente(pantalla, f"Esperando a que todos tiren... Tu valor: {sum(jugador.dados)}", fuente_mensajes)
+                    mensaje_actual = f"Esperando a que todos tiren... Tu valor: {sum(jugador.dados)}"
                 elif jugador.estado == "jugando":
                     if jugador.turno:
                         if all(ficha == 0 for ficha in jugador.fichas):
-                            mostrar_mensaje_persistente(pantalla, f"Tu turno - Intento {jugador.intentos_par}/3 para sacar par", fuente_mensajes)
+                            mensaje_actual = f"Tu turno - Intento {jugador.intentos_par}/3 para sacar par"
                         elif jugador.tiros_dados == 0:
-                            mostrar_mensaje_persistente(pantalla, "¡Tu turno! Tira los dados para mover", fuente_mensajes)
-                        elif jugador.tiros_dados == 1 and jugador.seleccionada == None:
-                            mostrar_mensaje_persistente(pantalla, "Selecciona una ficha para mover", fuente_mensajes)
-                        elif jugador.tiros_dados == 1 and jugador.seleccionada != None:
-                            mostrar_mensaje_persistente(pantalla, "Selecciona cuantas casillas mover", fuente_mensajes)
+                            mensaje_actual = "¡Tu turno! Tira los dados para mover"
+                        elif jugador.tiros_dados == 1 and jugador.seleccionada is None:
+                            mensaje_actual = "Selecciona una ficha para mover"
+                        elif jugador.tiros_dados == 1 and jugador.seleccionada is not None:
+                            mensaje_actual = "Selecciona cuántas casillas mover"
                         else:
-                            mensaje = "Moviendo ficha..."
+                            mensaje_actual = "Moviendo ficha..."
                     else:
-                        mensaje = "Esperando tu turno..."
+                        mensaje_actual = "Esperando tu turno..."
                 elif jugador.estado == "escoja_ficha":
-                    mensaje = "Selecciona una ficha para sacar"
-                    if jugador.seleccionada != None:
-                        mensaje = f"ficha seleccionada, sacará la ficha {jugador.seleccionada + 1}"
-                
-                elif jugador.estado.startswith("Ganador:"):
-                    mensaje = f"{jugador.estado}"
-                    texto = fuente_mensajes.render(mensaje, True, (0, 0, 0))
-                    pantalla.blit(texto, (250, 50))
-                    pygame.display.update()
-                    pygame.time.wait(5000)  # Esperar 5 segundos antes de cerrar
+                    if jugador.seleccionada is None:
+                        mensaje_actual = "Selecciona una ficha para sacar"
+                    else:
+                        mensaje_actual = f"Ficha seleccionada, sacará la ficha {jugador.seleccionada + 1}"
+                else:
+                    mensaje_actual = None
+
+                # 2) Llamar a redraw_window con el mensaje
+                redraw_window(pantalla, jugador, jugadores, mensaje_actual, fuente_mensajes)
+
+                # 3) Si ya hay un ganador, esperamos 5 segundos y salimos
+                if jugador.estado.startswith("Ganador:"):
+                    pygame.time.wait(5000)
                     running = False
 
-                if mensaje:
-                    texto = fuente_mensajes.render(mensaje, True, (0, 0, 0))
-                    pantalla.blit(texto, (250, 50))
-                            
-                if countdown is not None and countdown > 0:
-                    texto = fuente_mensajes.render(str(countdown), True, (0, 0, 0))
-                    pantalla.blit(texto, (450, 360))
-                    
             except Exception as e:
                 print(f"Error de conexión: {e}")
                 running = False
                 break
 
+            # Procesar eventos (botones y demás)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == boton_listo and not partida_iniciada:
@@ -381,12 +374,12 @@ def main():
                                 jugador.accion = "listo"
                                 boton_listo.set_text("No listo")
                             print(f"Jugador {jugador.color} - Acción: {jugador.accion}")
-                
+
                         elif event.ui_element == boton_tirar_dado and jugador.estado == "definiendo_turno":
                             jugador.accion = "tirar_dados_turno"
                             boton_tirar_dado.hide()
                             pygame.draw.rect(pantalla, (255, 255, 255), (750, 550, 100, 50))
-                        
+
                         elif event.ui_element == boton_tirar_dado and jugador.estado == "jugando" and jugador.turno:
                             print("Tirando dados...")
                             jugador.accion = "tirar_dados"
@@ -396,7 +389,7 @@ def main():
                             print("moviendo ficha con el dado 1")
                             jugador.accion = "mover_ficha_1_1"
                             jugador.movimiento_restante[0] = 0
-                            
+
                         elif event.ui_element == boton_mover_ficha_1_2 and jugador.estado == "jugando" and jugador.turno:
                             print("moviendo ficha con el dado 2")
                             jugador.accion = "mover_ficha_1_2"
@@ -406,26 +399,26 @@ def main():
                             print("moviendo ficha con el dado 1 y 2")
                             jugador.accion = "mover_ficha_2"
                             jugador.movimiento_restante = [0, 0]
-                        
+
                         elif event.ui_element == boton_sacar_ficha and jugador.estado == "escoja_ficha":
                             print("sacando ficha")
                             jugador.accion = "sacar_ficha"
                             boton_sacar_ficha.hide()
-                            mensaje_actual = None  # Ocultar el mensaje de sacar ficha
-                        
+                            mensaje_actual = None
+
                         elif event.ui_element == boton_sacar_ficha_carcel and jugador.estado == "jugando":
                             print("sacando ficha de la cárcel")
                             jugador.accion = "sacar_ficha_carcel"
                             jugador.movimiento_restante = [0, 0]
 
-
                 manager.process_events(event)
-            
+
             manager.update(time_delta)
             manager.draw_ui(pantalla)
-            
+
+            # Solo una llamada a pygame.display.update() por fotograma
             pygame.display.update()
-                    
+
     except Exception as e:
         print(f"Error al iniciar el juego: {e}")
     finally:
