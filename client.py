@@ -371,6 +371,13 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+    
+
+                # Aquí imprimimos en terminal la posición del mouse cuando se mueva
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    print(f"Coordenadas mouse: ({x}, {y})")
+
 
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
