@@ -13,10 +13,18 @@ pantalla = pygame.display.set_mode((900, 720))
 pygame.display.set_caption("Parqués")
 
 # Cargar sprites
-sprite_tablero_amarillo = pygame.image.load("Sprites/Tablero1.png")
-sprite_tablero_azul = pygame.image.load("Sprites/Tablero2.png")
-sprite_tablero_verde = pygame.image.load("Sprites/Tablero3.png")
-sprite_tablero_rojo = pygame.image.load("Sprites/Tablero4.png")
+sprite_tablero_amarillo = pygame.image.load("Sprites/Tablero_amarillo.jpeg")
+sprite_tablero_amarillo = pygame.transform.scale(sprite_tablero_amarillo, (720, 720))
+
+sprite_tablero_azul = pygame.image.load("Sprites/Tablero_azul.jpeg")
+sprite_tablero_azul = pygame.transform.scale(sprite_tablero_azul, (720, 720))
+
+sprite_tablero_verde = pygame.image.load("Sprites/Tablero_verde.jpeg")
+sprite_tablero_verde = pygame.transform.scale(sprite_tablero_verde, (720, 720))
+
+sprite_tablero_rojo = pygame.image.load("Sprites/Tablero_rojo.jpeg")
+sprite_tablero_rojo = pygame.transform.scale(sprite_tablero_rojo, (720, 720))
+
 
 sprite_dado0 = pygame.image.load("Sprites/Dado0.png")
 sprite_dado1 = pygame.image.load("Sprites/Dado1.png")
