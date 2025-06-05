@@ -44,6 +44,10 @@ pantalla.blit(sprite_dado0, (816, 640))
 def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
     global Pintar
 
+    # Definir los colores de los cuadros con efecto espejo
+    espejo_color = (230, 230, 230)  # Color suave para el efecto espejo
+    borde_color = (0, 0, 0)  # Color del borde del cuadro
+
     if Pintar:
         pantalla.fill((255, 255, 255))
         Pintar = False
@@ -70,7 +74,8 @@ def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
     jugadores_listos = len([j for j in otros_jugadores if j.estado == "listo"]) + (1 if jugador.estado == "listo" else 0)
     if total_jugadores >= 2 and jugadores_listos == total_jugadores and jugador.estado == "listo":
         subtitulo = pygame.font.Font(None, 48).render("¡Listos para jugar!", True, (0, 0, 0))
-        pantalla.blit(subtitulo, (200, 75))
+        subtitulo_rect = subtitulo.get_rect(center=(900 - 90, 40))
+        pantalla.blit(subtitulo, subtitulo_rect)
 
     # Dibujar fichas y nombres
     jugador.actualizar_en_pantalla(pantalla, jugador.color)
@@ -82,23 +87,58 @@ def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
 
     # Dibujar mensaje si existe
     if mensaje is not None:
-        # Cambiar la tipografía
-        fuente_mensajes = pygame.font.SysFont("Comic Sans MS", 40)  # Usar una tipografía más amigable y moderna
-        texto_surf = fuente_mensajes.render(mensaje, True, (0, 0, 0))
-        
-        # Cuadro con efecto espejo
-        rect_texto = texto_surf.get_rect(center=(pantalla.get_width() // 2, 60))
-        
-        # Crear el cuadro con efecto espejo
-        espejo_color = (230, 230, 230)  # Color suave para el efecto espejo
-        borde_color = (0, 0, 0)  # Color del borde del cuadro
+        # Cambiar la tipografía a más pequeña
+        fuente_mensajes = pygame.font.SysFont("Comic Sans MS", 24)  # Tipografía más pequeña para los mensajes largos
+        texto_surfs = []
+
+        # Ajustar el mensaje con saltos de línea si es necesario
+        texto_lines = []
+        max_width = 180  # Definir el ancho máximo de la caja del mensaje
+
+        # Dividir el mensaje en líneas que quepan dentro del espacio
+        for word in mensaje.split():
+            if texto_lines and fuente_mensajes.size(texto_lines[-1] + ' ' + word)[0] <= max_width:
+                texto_lines[-1] += ' ' + word
+            else:
+                texto_lines.append(word)
+
+        # Renderizar cada línea de texto
+        for line in texto_lines:
+            texto_surfs.append(fuente_mensajes.render(line, True, (0, 0, 0)))
+
+        # Calcular la altura total del cuadro
+        total_height = sum([line.get_height() for line in texto_surfs]) + 20  # Espacio entre líneas
+
+        # Ajustar la posición del mensaje dentro del área disponible al lado de la línea negra
+        rect_texto = pygame.Rect(720, 20, 180, total_height)
+
+        # Asegurarse de que el texto no se salga del área
+        if rect_texto.bottom > 300:  # Si el texto se sale de la pantalla
+            rect_texto.height = 300 - rect_texto.top  # Limitar la altura del rectángulo
 
         # Dibujar el cuadro con borde redondeado
-        pygame.draw.rect(pantalla, espejo_color, rect_texto.inflate(20, 20), border_radius=15)
-        pygame.draw.rect(pantalla, borde_color, rect_texto.inflate(20, 20), width=4, border_radius=15)
+        pygame.draw.rect(pantalla, espejo_color, rect_texto, border_radius=15)
+        pygame.draw.rect(pantalla, borde_color, rect_texto, width=4, border_radius=15)
 
-        # Dibujar el texto sobre el cuadro
-        pantalla.blit(texto_surf, rect_texto)
+        # Dibujar cada línea de texto sobre el cuadro
+        y_offset = 10  # Desplazamiento inicial para la primera línea
+        for texto_surf in texto_surfs:
+            # Ajustar posición del texto para que no se salga del área
+            if y_offset + texto_surf.get_height() < rect_texto.bottom:
+                pantalla.blit(texto_surf, (rect_texto.x + 10, rect_texto.y + y_offset))  # Ajustar posición del texto
+                y_offset += texto_surf.get_height() + 5  # Aumentar el desplazamiento para la siguiente línea
+
+    # Mensaje para presionar "Listo para empezar a jugar"
+    mensaje_listo = "Presiona 'Listo' para empezar a jugar"
+    fuente_mensajes = pygame.font.SysFont("Comic Sans MS", 24)
+    texto_surf_listo = fuente_mensajes.render(mensaje_listo, True, (0, 0, 0))
+    rect_texto_listo = texto_surf_listo.get_rect(center=(900 - 90, 90))
+
+    # Cuadro con efecto espejo para "Presiona Listo"
+    rect_texto_listo_box = pygame.Rect(720, 80, 180, texto_surf_listo.get_height() + 10)
+    pygame.draw.rect(pantalla, espejo_color, rect_texto_listo_box, border_radius=15)
+    pygame.draw.rect(pantalla, borde_color, rect_texto_listo_box, width=4, border_radius=15)
+    pantalla.blit(texto_surf_listo, rect_texto_listo)
 
 
 def menu_principal(network):
