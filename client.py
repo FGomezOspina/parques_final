@@ -8,6 +8,7 @@ from menu_inicio import MenuInicio
 # Inicialización de pygame
 pygame.init()
 
+print(f"pygame version: {pygame.__version__}")
 # Configuración de pantalla
 pantalla = pygame.display.set_mode((900, 720))
 pygame.display.set_caption("Parqués")
