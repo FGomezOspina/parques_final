@@ -4,9 +4,10 @@ from _thread import *
 from jugador import Jugador
 import random
 import time
+import os
 
-server = "localhost"
-port = 5555
+server = "0.0.0.0"
+port = int(os.getenv("PORT", 5555))  # Usar el puerto asignado por Render, o 5555 como predeterminado
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
