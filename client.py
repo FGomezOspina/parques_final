@@ -26,13 +26,13 @@ sprite_tablero_rojo = pygame.image.load("Sprites/Tablero_rojo.jpeg")
 sprite_tablero_rojo = pygame.transform.scale(sprite_tablero_rojo, (720, 720))
 
 
-sprite_dado0 = pygame.image.load("Sprites/Dado0.png")
-sprite_dado1 = pygame.image.load("Sprites/Dado1.png")
-sprite_dado2 = pygame.image.load("Sprites/Dado2.png")
-sprite_dado3 = pygame.image.load("Sprites/Dado3.png")
-sprite_dado4 = pygame.image.load("Sprites/Dado4.png")
-sprite_dado5 = pygame.image.load("Sprites/Dado5.png")
-sprite_dado6 = pygame.image.load("Sprites/Dado6.png")
+sprite_dado0 = pygame.image.load("Sprites/Dado_0.png")
+sprite_dado1 = pygame.image.load("Sprites/Dado_1.png")
+sprite_dado2 = pygame.image.load("Sprites/Dado_2.png")
+sprite_dado3 = pygame.image.load("Sprites/Dado_3.png")
+sprite_dado4 = pygame.image.load("Sprites/Dado_4.png")
+sprite_dado5 = pygame.image.load("Sprites/Dado_5.png")
+sprite_dado6 = pygame.image.load("Sprites/Dado_6.png")
 
 dados = [sprite_dado0, sprite_dado1, sprite_dado2, sprite_dado3, sprite_dado4, sprite_dado5, sprite_dado6]
 Pintar = True
