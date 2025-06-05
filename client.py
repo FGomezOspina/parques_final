@@ -154,15 +154,6 @@ def menu_principal(network):
                         return None
                     else:
                         jugadores = response
-                        # Verificar si el color está ocupado solo si ya hay otros jugadores en la partida
-                        if len(jugadores) > 1:
-                            color_ocupado = any(jugador.color == resultado['color'] for jugador in jugadores)
-                            if color_ocupado:
-                                menu.mostrar_error(f"El color {resultado['color']} ya está en uso. Elige otro.")
-                                pygame.display.update()
-                                pygame.time.wait(5000)  # Esperar 5 segundos antes de continuar
-                                return None  # No dejar entrar al jugador con color repetido
-                        # Si el color no está en uso, permitir el ingreso
                         for j in jugadores:
                             if j.color == resultado['color'] and j.nombre == resultado['nombre']:
                                 return resultado
