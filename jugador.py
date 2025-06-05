@@ -2,10 +2,10 @@ import pygame
 from tablero import Tablero
 
 # Cargar los sprites de las fichas
-sprite_amarillo = pygame.image.load("Sprites/Ficha1.png")
-sprite_azul = pygame.image.load("Sprites/Ficha2.png")
-sprite_verde = pygame.image.load("Sprites/Ficha3.png")
-sprite_rojo = pygame.image.load("Sprites/Ficha4.png")
+sprite_amarillo = pygame.image.load("Sprites/Ficha_1.png")
+sprite_azul = pygame.image.load("Sprites/Ficha_2.png")
+sprite_verde = pygame.image.load("Sprites/Ficha_3.png")
+sprite_rojo = pygame.image.load("Sprites/Ficha_4.png")
 
 class Jugador:
     def __init__(self, nombre, color, fichas):
