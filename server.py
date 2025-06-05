@@ -7,7 +7,7 @@ import time
 import os
 
 server = "0.0.0.0"
-port = int(os.getenv("PORT", 5555))  # Usar el puerto asignado por Render, o 5555 como predeterminado
+port = 5555  # O el puerto que prefieras
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
