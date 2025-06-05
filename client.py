@@ -128,18 +128,6 @@ def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
                 pantalla.blit(texto_surf, (rect_texto.x + 10, rect_texto.y + y_offset))  # Ajustar posición del texto
                 y_offset += texto_surf.get_height() + 5  # Aumentar el desplazamiento para la siguiente línea
 
-    # Mensaje para presionar "Listo para empezar a jugar"
-    mensaje_listo = "Presiona 'Listo' para empezar a jugar"
-    fuente_mensajes = pygame.font.SysFont("Comic Sans MS", 24)
-    texto_surf_listo = fuente_mensajes.render(mensaje_listo, True, (0, 0, 0))
-    rect_texto_listo = texto_surf_listo.get_rect(center=(900 - 90, 90))
-
-    # Cuadro con efecto espejo para "Presiona Listo"
-    rect_texto_listo_box = pygame.Rect(720, 80, 180, texto_surf_listo.get_height() + 10)
-    pygame.draw.rect(pantalla, espejo_color, rect_texto_listo_box, border_radius=15)
-    pygame.draw.rect(pantalla, borde_color, rect_texto_listo_box, width=4, border_radius=15)
-    pantalla.blit(texto_surf_listo, rect_texto_listo)
-
 
 def menu_principal(network):
     menu = MenuInicio(pantalla)
