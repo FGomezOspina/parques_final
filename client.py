@@ -43,6 +43,7 @@ pantalla.blit(sprite_dado0, (816, 640))
 
 def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
     global Pintar
+
     if Pintar:
         pantalla.fill((255, 255, 255))
         Pintar = False
@@ -81,9 +82,24 @@ def redraw_window(pantalla, jugador, otros_jugadores, mensaje, fuente_mensajes):
 
     # Dibujar mensaje si existe
     if mensaje is not None:
+        # Cambiar la tipografía
+        fuente_mensajes = pygame.font.SysFont("Comic Sans MS", 40)  # Usar una tipografía más amigable y moderna
         texto_surf = fuente_mensajes.render(mensaje, True, (0, 0, 0))
+        
+        # Cuadro con efecto espejo
         rect_texto = texto_surf.get_rect(center=(pantalla.get_width() // 2, 60))
+        
+        # Crear el cuadro con efecto espejo
+        espejo_color = (230, 230, 230)  # Color suave para el efecto espejo
+        borde_color = (0, 0, 0)  # Color del borde del cuadro
+
+        # Dibujar el cuadro con borde redondeado
+        pygame.draw.rect(pantalla, espejo_color, rect_texto.inflate(20, 20), border_radius=15)
+        pygame.draw.rect(pantalla, borde_color, rect_texto.inflate(20, 20), width=4, border_radius=15)
+
+        # Dibujar el texto sobre el cuadro
         pantalla.blit(texto_surf, rect_texto)
+
 
 def menu_principal(network):
     menu = MenuInicio(pantalla)
